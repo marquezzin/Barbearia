@@ -1,0 +1,59 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// criando tabela de usuario
+//@id = chave primaria
+model User {
+  id        String    @id @default(uuid())
+  email     String
+  name      String
+  bookings  Booking[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Barbershop {
+  id          String              @id @default(uuid())
+  name        String
+  address     String
+  phones      String[]
+  description String
+  imageUrl    String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  services    BarbershopService[] //(1,n) um barbershop tem varios serviços
+}
+
+model BarbershopService {
+  id           String     @id @default(uuid())
+  name         String
+  description  String
+  imageUrl     String
+  price        Decimal    @db.Decimal(10, 2) //10 casas antes da virgula e duas dps
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id]) //(1,1)
+  bookings     Booking[]
+}
+
+//fields: [barbershopId]: Esta parte especifica que o campo barbershopId no modelo BarberService será usado como a chave estrangeira para estabelecer a relação. 
+//Ou seja, o valor de barbershopId referenciará um registro no modelo Barbershop
+//references: [id]: Esta parte especifica que o campo barbershopId no modelo BarberService referencia o campo id no modelo Barbershop.
+//Em outras palavras, o valor de barbershopId corresponderá ao valor de id de um registro no modelo Barbershop.
+
+model Booking {
+  id        String            @id @default(uuid())
+  userID    String
+  user      User              @relation(fields: [userID], references: [id])
+  serviceId String //chave estrangeira
+  service   BarbershopService @relation(fields: [serviceId], references: [id])
+  date      DateTime
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
